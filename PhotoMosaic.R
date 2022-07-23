@@ -8,7 +8,18 @@ pacman::p_load(tidyverse, magrittr, lubridate, rvest, xml2, RSelenium, RsimMosai
 
 # Read in a list of role models----
 # rms <- read.csv('roleModels.csv')
-rms <- read.csv('places.csv')
+# rms <- read.csv('places.csv')
+rms <- read.csv('/Users/rnguymon/Downloads/Who would you like to eat dinner with_ (Responses) - Form Responses 1.csv')
+names(rms) <- gsub('\\.| ', '', names(rms))
+rms %<>%
+  pivot_longer(cols = 2:8, names_to = 'question', values_to = 'name') %>%
+  mutate(
+    name = gsub('[^a-zA-Z0-9 ]', '', name)
+  ) %>%
+  .[!duplicated(.$name),] %>%
+  .[sample(1:nrow(.), 125, replace = F),] %>%
+  filter(!is.na(name))
+
 
 # Use Selenium to get search results----
 # Follow instructions from here: https://cran.r-project.org/web/packages/RSelenium/vignettes/basics.html
@@ -17,7 +28,8 @@ rms <- read.csv('places.csv')
 # Download the selenium-server-standalone.jar file from here: http://selenium-release.storage.googleapis.com/index.html
 # Move the file to the folder where the script is
 # Use terminal to navigate to the folder and run the file, or include the full file path: java -jar selenium-server-standalone-x.xx.x.jar
-# cd "/Users/rnguymon/Box Sync/Photo Mosaic/" java -jar selenium-server-standalone-4.0.0-alpha-2.jar
+# cd "/Users/rnguymon/Box Sync/Photo Mosaic/" 
+# java -jar selenium-server-standalone-4.0.0-alpha-2.jar
 startTime <- Sys.time()
 remDr <- remoteDriver(remoteServerAddr = 'localhost'
                       , port = 4444L
@@ -93,19 +105,19 @@ for(i in 1:length(searchTerms)){
 
 # Convert the images to same sized tiles----
 # First, update the createTiles function from RsimMosaic to include a tryCatch statement (see code below)
-createTiles2 <- createTiles
-fix(createTiles2)
-tilesFolder <- './mosaicTiles/' # Make sure to include the forward slash. The function creates the folder.
+# createTiles2 <- createTiles
+# fix(createTiles2)
+tilesFolder <- './mosaicTiles2/' # Make sure to include the forward slash. The function creates the folder.
 createTiles2(inPath = imgFolder
              , outPath = tilesFolder
-             , tileHeight = 80 # Height of 80 makes pretty clear picture tiles
+             , tileHeight = 100 # Height of 80 makes pretty clear picture tiles
 )
 
 # Create the mosaic----
 allTiles <- list.files(tilesFolder)
 randomPictureToUse <- paste0(tilesFolder, allTiles[sample(length(allTiles), 1)])
-composeMosaicFromImageRandomOptim('CAT797_200.jpg'# Resizing the image to be 200x137 seems like a good balance. 165x305 took several minutes
-                                  , 'testMosaic200_places.jpeg'
+composeMosaicFromImageRandomOptim('laserTag_200.jpg'# Resizing the image to be 200x137 seems like a good balance. 165x305 took several minutes
+                                  , 'Lebaron_tiles80_laserTag200.jpeg'
                                   , tilesFolder)
 
 # function (inPath, outPath, tileHeight = 40, verbose = TRUE)
